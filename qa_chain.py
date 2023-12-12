@@ -1,3 +1,7 @@
+"""
+When you will run your query, you will get the appropriate results, but with a ValueError, where it will ask you to input as a dictionary. While, in your final code, you have given your input as a dictionary.
+Doing same methods and processes with OpenAI api, you will not get any error like this. For more information about how to use OpenAI with LangChain, see this cookbook.
+"""
 import logging
 from langchain.document_loaders import HuggingFaceDatasetLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -77,7 +81,7 @@ logger.info("started")
 docs = get_docs()
 embeddings = get_embeddings()
 question = "Who is Thomas Jefferson?"
-squad_example = SquadExample(qas_id=None, question_text=question, context_text="", title=None, answer_text=None, start_position_character=None)
+llm = get_llm()
 logger.info("building FAISS db")
 db = FAISS.from_documents(docs, embeddings)
 # Create a retriever object from the 'db' with a search configuration where it retrieves up to 4 relevant splits/documents.
@@ -85,11 +89,10 @@ retriever = db.as_retriever(search_kwargs={"k": 4})
 
 # Create a question-answering instance (qa) using the RetrievalQA class.
 # It's configured with a language model (llm), a chain type "refine," the retriever we created, and an option to not return source documents.
-llm = get_llm()
 qa = RetrievalQA.from_chain_type(llm=llm, chain_type="refine", retriever=retriever, return_source_documents=False)
 
 # Finally, we call this QA chain with the question we want to ask.
-result = qa({"query": question})
+result = qa({"query": question, "question": question, "context": ""})
 with open("result.txt", "w") as fp:
     fp.write(result["result"])
 logger.info("completed")
