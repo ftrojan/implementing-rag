@@ -5,6 +5,7 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 from transformers import AutoTokenizer, pipeline
+from transformers import SquadExample
 from langchain import HuggingFacePipeline
 from langchain.chains import RetrievalQA
 
@@ -75,6 +76,9 @@ logger = logging.getLogger(__name__)
 logger.info("started")
 docs = get_docs()
 embeddings = get_embeddings()
+question = "Who is Thomas Jefferson?"
+squad_example = SquadExample(qas_id=None, question_text=question, context_text="", title=None, answer_text=None, start_position_character=None)
+logger.info("building FAISS db")
 db = FAISS.from_documents(docs, embeddings)
 # Create a retriever object from the 'db' with a search configuration where it retrieves up to 4 relevant splits/documents.
 retriever = db.as_retriever(search_kwargs={"k": 4})
@@ -85,8 +89,7 @@ llm = get_llm()
 qa = RetrievalQA.from_chain_type(llm=llm, chain_type="refine", retriever=retriever, return_source_documents=False)
 
 # Finally, we call this QA chain with the question we want to ask.
-question = "Who is Thomas Jefferson?"
-result = qa.run({"query": question})
+result = qa({"query": question})
 with open("result.txt", "w") as fp:
     fp.write(result["result"])
 logger.info("completed")

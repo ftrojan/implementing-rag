@@ -46,6 +46,7 @@ logger = logging.getLogger(__name__)
 logger.info("started")
 docs = get_docs()
 embeddings = get_embeddings()
+logger.info("building FAISS db")
 db = FAISS.from_documents(docs, embeddings)
 question = "What is cheesemaking?"
 searchDocs = db.similarity_search(question)
